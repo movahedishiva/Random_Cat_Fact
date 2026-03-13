@@ -9,6 +9,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
+import com.example.randomcatfact.util.Result
 
 
 class CatRepositoryImpl @Inject constructor(
@@ -17,10 +18,19 @@ class CatRepositoryImpl @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : CatRepository {
 
-    override suspend fun getFact(): String {
+    override suspend fun getFact(): Result<String> {
 
      return withContext(ioDispatcher)
-    { remote.getFact() }
+    {
+         try{
+             val fact=remote.getFact()
+             Result.Success(fact)
+
+         }catch (e: Exception){
+             Result.Error(e)
+         }
+
+     }
 }
 
 

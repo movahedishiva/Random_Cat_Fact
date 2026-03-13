@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.collections.any
 
+import com.example.randomcatfact.util.Result
 
 @HiltViewModel
 class CatViewModel @Inject constructor(
@@ -27,7 +28,7 @@ class CatViewModel @Inject constructor(
     val favorites =
         repository.getFavorites().stateIn(
             viewModelScope,
-            SharingStarted.Lazily,
+            SharingStarted.WhileSubscribed(5000),
             emptyList()
         )
 
@@ -41,22 +42,20 @@ class CatViewModel @Inject constructor(
 
             _state.value = CatFactState.Loading
 
-            try {
 
-                val fact = repository.getFact()
+                val result = repository.getFact()
 
-                _state.update {
-                    CatFactState.Success(fact)
-                }
+             when(result){
+                 is Result.Success -> _state.update {
+                     CatFactState.Success(result.data)
+                 }
+
+                 is Result.Error -> _state.update {
+                     CatFactState.Error(result.exception.message.toString())
+                 }
+             }
 
 
-            } catch (e: Exception) {
-
-                _state.update {
-                    CatFactState.Error(e.message.toString())
-                }
-
-            }
         }
     }
 
